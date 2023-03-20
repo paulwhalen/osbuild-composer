@@ -354,10 +354,8 @@ func edgeRawImage(workload workload.Workload,
 		ContentURL: options.OSTree.ContentURL,
 		Checksum:   options.OSTree.FetchChecksum,
 	}
-	img := image.NewOSTreeRawImage(commit)
-	if !common.VersionLessThan(t.arch.distro.osVersion, "9.2") || t.arch.distro.osVersion == "9-stream" {
-		img.Ignition = true
-	}
+	img := image.NewOSTreeImage(commit)
+	img.Compression = "xz"
 
 	img.Users = users.UsersFromBP(customizations.GetUsers())
 	img.Groups = users.GroupsFromBP(customizations.GetGroups())
@@ -370,6 +368,14 @@ func edgeRawImage(workload workload.Workload,
 		img.KernelOptionsAppend = append(img.KernelOptionsAppend, "rw")
 	}
 
+	if !common.VersionLessThan(t.arch.distro.osVersion, "9.2") || t.arch.distro.osVersion == "9-stream" {
+		img.Ignition = true
+		img.IgnitionPlatform = "metal"
+		if bpIgnition := customizations.GetIgnition(); bpIgnition != nil && bpIgnition.FirstBoot != nil && bpIgnition.FirstBoot.ProvisioningURL != "" {
+			img.KernelOptionsAppend = append(img.KernelOptionsAppend, "ignition.config.url="+bpIgnition.FirstBoot.ProvisioningURL)
+		}
+	}
+
 	img.Platform = t.platform
 	img.Workload = workload
 	img.Remote = ostree.Remote{
@@ -379,11 +385,6 @@ func edgeRawImage(workload workload.Workload,
 	}
 	img.OSName = "redhat"
 
-	if bpIgnition := customizations.GetIgnition(); bpIgnition != nil && bpIgnition.FirstBoot != nil && bpIgnition.FirstBoot.ProvisioningURL != "" {
-		img.KernelOptionsAppend = append(img.KernelOptionsAppend, "ignition.config.url="+bpIgnition.FirstBoot.ProvisioningURL)
-	}
-
-	// 92+ only
 	if kopts := customizations.GetKernel(); kopts != nil && kopts.Append != "" {
 		img.KernelOptionsAppend = append(img.KernelOptionsAppend, kopts.Append)
 	}
@@ -414,10 +415,8 @@ func edgeSimplifiedInstallerImage(workload workload.Workload,
 		ContentURL: options.OSTree.ContentURL,
 		Checksum:   options.OSTree.FetchChecksum,
 	}
-	rawImg := image.NewOSTreeRawImage(commit)
-	if !common.VersionLessThan(t.arch.distro.osVersion, "9.2") || t.arch.distro.osVersion == "9-stream" {
-		rawImg.Ignition = true
-	}
+	rawImg := image.NewOSTreeImage(commit)
+	rawImg.Compression = "xz"
 
 	rawImg.Users = users.UsersFromBP(customizations.GetUsers())
 	rawImg.Groups = users.GroupsFromBP(customizations.GetGroups())
@@ -439,6 +438,14 @@ func edgeSimplifiedInstallerImage(workload workload.Workload,
 	}
 	rawImg.OSName = "redhat"
 
+	if !common.VersionLessThan(t.arch.distro.osVersion, "9.2") || t.arch.distro.osVersion == "9-stream" {
+		rawImg.Ignition = true
+		rawImg.IgnitionPlatform = "metal"
+		if bpIgnition := customizations.GetIgnition(); bpIgnition != nil && bpIgnition.FirstBoot != nil && bpIgnition.FirstBoot.ProvisioningURL != "" {
+			rawImg.KernelOptionsAppend = append(rawImg.KernelOptionsAppend, "ignition.config.url="+bpIgnition.FirstBoot.ProvisioningURL)
+		}
+	}
+
 	// TODO: move generation into LiveImage
 	pt, err := t.getPartitionTable(customizations.GetFilesystems(), options, rng)
 	if err != nil {
@@ -447,10 +454,6 @@ func edgeSimplifiedInstallerImage(workload workload.Workload,
 	rawImg.PartitionTable = pt
 
 	rawImg.Filename = t.Filename()
-
-	if bpIgnition := customizations.GetIgnition(); bpIgnition != nil && bpIgnition.FirstBoot != nil && bpIgnition.FirstBoot.ProvisioningURL != "" {
-		rawImg.KernelOptionsAppend = append(rawImg.KernelOptionsAppend, "ignition.config.url="+bpIgnition.FirstBoot.ProvisioningURL)
-	}
 
 	// 92+ only
 	if kopts := customizations.GetKernel(); kopts != nil && kopts.Append != "" {
