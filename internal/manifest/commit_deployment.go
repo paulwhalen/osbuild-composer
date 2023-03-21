@@ -40,6 +40,8 @@ type OSTreeDeployment struct {
 
 	// Whether ignition is in use or not
 	ignition bool
+	// Specifies the igniton platform to use
+	ignitionPlatform string
 }
 
 // NewOSTreeDeployment creates a pipeline for an ostree deployment from a
@@ -49,6 +51,7 @@ func NewOSTreeDeployment(m *Manifest,
 	commit ostree.CommitSpec,
 	osName string,
 	ignition bool,
+	ignitionPlatform string,
 	platform platform.Platform) *OSTreeDeployment {
 
 	p := &OSTreeDeployment{
@@ -57,6 +60,7 @@ func NewOSTreeDeployment(m *Manifest,
 		osName:   osName,
 		platform: platform,
 		ignition: ignition,
+		ignitionPlatform: ignitionPlatform,
 	}
 	buildPipeline.addDependent(p)
 	m.addPipeline(p)
@@ -103,7 +107,7 @@ func (p *OSTreeDeployment) serialize() osbuild.Pipeline {
 	if p.ignition {
 		kernelOpts = append(kernelOpts,
 			"coreos.no_persist_ip", // users cannot add connections as we don't have a live iso, this prevents connections to bleed into the system from the ign initrd
-			"ignition.platform.id=metal",
+			"ignition.platform.id="+p.ignitionPlatform,
 			"$ignition_firstboot",
 		)
 	}

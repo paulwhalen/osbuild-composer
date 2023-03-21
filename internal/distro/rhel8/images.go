@@ -404,7 +404,8 @@ func edgeRawImage(workload workload.Workload,
 		ContentURL: options.OSTree.ContentURL,
 		Checksum:   options.OSTree.FetchChecksum,
 	}
-	img := image.NewOSTreeRawImage(commit)
+	img := image.NewOSTreeImage(commit)
+	img.Compression = "xz"
 
 	img.Users = users.UsersFromBP(customizations.GetUsers())
 	img.Groups = users.GroupsFromBP(customizations.GetGroups())
@@ -449,7 +450,8 @@ func edgeSimplifiedInstallerImage(workload workload.Workload,
 		ContentURL: options.OSTree.ContentURL,
 		Checksum:   options.OSTree.FetchChecksum,
 	}
-	rawImg := image.NewOSTreeRawImage(commit)
+	rawImg := image.NewOSTreeImage(commit)
+	rawImg.Compression = "xz"
 
 	rawImg.Users = users.UsersFromBP(customizations.GetUsers())
 	rawImg.Groups = users.GroupsFromBP(customizations.GetGroups())
