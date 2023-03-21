@@ -388,6 +388,7 @@ OSTree simplified installer:
   parallel:
     matrix:
       - RUNNER:
+          - aws/fedora-38-x86_64
           - rhos-01/rhel-8.8-nightly-x86_64
           - rhos-01/centos-stream-8-x86_64
           - rhos-01/rhel-9.2-nightly-x86_64
